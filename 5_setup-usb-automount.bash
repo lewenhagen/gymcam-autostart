@@ -118,13 +118,41 @@ fi
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-# === 6. Uppdatera gymcam systemd-tjänst med nya USB_MOUNT ===
+# === 6. Uppdatera gymcam systemd-tjänst med nya USB_MOUNT + rättigheter ===
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
+
 if [ -f "$SERVICE_FILE" ]; then
-  sudo sed -i "s|Environment=USB_MOUNT=.*|Environment=USB_MOUNT=$USB_MOUNT|" "$SERVICE_FILE"
+  echo "[INFO] Uppdaterar systemd-tjänst..."
+
+  # 1. Sätt USB_MOUNT env
+  if grep -q "^Environment=USB_MOUNT=" "$SERVICE_FILE"; then
+    sudo sed -i "s|^Environment=USB_MOUNT=.*|Environment=USB_MOUNT=$USB_MOUNT|" "$SERVICE_FILE"
+  else
+    sudo sed -i "/^\[Service\]/a Environment=USB_MOUNT=$USB_MOUNT" "$SERVICE_FILE"
+  fi
+
+  # 2. Tillåt skrivning till USB-path (VIKTIGT)
+  if grep -q "^ReadWritePaths=" "$SERVICE_FILE"; then
+    sudo sed -i "s|^ReadWritePaths=.*|ReadWritePaths=$USB_MOUNT|" "$SERVICE_FILE"
+  else
+    sudo sed -i "/^\[Service\]/a ReadWritePaths=$USB_MOUNT" "$SERVICE_FILE"
+  fi
+
+  # 3. (Valfri men bra) stäng av restriktioner som kan blockera
+  if ! grep -q "^ProtectSystem=" "$SERVICE_FILE"; then
+    sudo sed -i "/^\[Service\]/a ProtectSystem=no" "$SERVICE_FILE"
+  fi
+
+  if ! grep -q "^ProtectHome=" "$SERVICE_FILE"; then
+    sudo sed -i "/^\[Service\]/a ProtectHome=no" "$SERVICE_FILE"
+  fi
+
+  # 4. Ladda om + starta om
+  sudo systemctl daemon-reexec
   sudo systemctl daemon-reload
   sudo systemctl restart "$SERVICE_NAME" 2>/dev/null || true
-  echo "[OK] 6. === systemd-tjänst uppdaterad med USB_MOUNT=$USB_MOUNT ==="
+
+  echo "[OK] 6. === systemd-tjänst uppdaterad med USB_MOUNT + rättigheter ==="
 else
   echo "[INFO] Ingen systemd-tjänst hittad — kör skript 3 först om du inte gjort det."
 fi
