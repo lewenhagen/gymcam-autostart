@@ -24,10 +24,14 @@ echo "[OK] 1. === udisks2 installerat ==="
 
 # === 2. Skapa udev-regel för automontring ===
 echo "[INFO] Skapar udev-regel..."
-sudo bash -c "cat > $UDEV_RULE" <<'EOF'
-# Gymcam: montera USB-enheter automatiskt när de ansluts
-ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_BUS}=="usb", \
-  RUN+="/usr/bin/systemd-mount --no-block --automount=yes --collect -o uid=1000,gid=1000,umask=0000"
+
+sudo mkdir -p "$USB_MOUNT"
+sudo chown 1000:1000 "$USB_MOUNT"
+
+sudo bash -c "cat > $UDEV_RULE" <<EOF
+# Gymcam: montera USB-enhet med etikett $USB_LABEL till fast punkt
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="$USB_LABEL", ENV{ID_FS_USAGE}=="filesystem", \\
+  RUN+="/usr/bin/systemd-mount --no-block --collect --mount-point=$USB_MOUNT -o uid=1000,gid=1000,umask=0000 %N"
 EOF
 
 echo "[OK] 2. === udev-regel skapad: $UDEV_RULE ==="
