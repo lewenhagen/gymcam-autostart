@@ -27,7 +27,7 @@ echo "[INFO] Skapar udev-regel..."
 sudo bash -c "cat > $UDEV_RULE" <<'EOF'
 # Gymcam: montera USB-enheter automatiskt när de ansluts
 ACTION=="add", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_BUS}=="usb", \
-  RUN+="/usr/bin/systemd-mount --no-block --automount=yes --collect %N"
+  RUN+="/usr/bin/systemd-mount --no-block --automount=yes --collect -o uid=1000,gid=1000,umask=0000"
 EOF
 
 echo "[OK] 2. === udev-regel skapad: $UDEV_RULE ==="
