@@ -9,7 +9,7 @@ SERVICE_NAME="gymcam"
 APP_DIR="$HOME/gymcam"
 ENV_FILE="$APP_DIR/.env"
 USB_LABEL="GYMCAM"
-USB_MOUNT="/run/media/system/$USB_LABEL"
+USB_MOUNT="/mnt/$USB_LABEL"
 UDEV_RULE="/etc/udev/rules.d/99-usb-automount.rules"
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
